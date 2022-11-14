@@ -12,20 +12,20 @@ contract Gratitude {
     address from;
     address token;
     uint256 amount;
-    address lender;
     string content;
   }
-  mapping (address => uint256) recipients;
-  mapping (address => mapping(uint256 => Cert)) certs;
+  mapping (address => uint256) public recipients;
+  mapping (address => mapping(uint256 => Cert)) public certs;
 
   function _record(address recipient, address token, uint256 amount, string memory content, address sender) private {
-    recipients[recipient] =  recipients[recipient] + 1; // replace with counter
-    certs[recipient][recipients[recipient]] = Cert(
-      sender, token, amount, address(0), content
+    uint256 recent = recipients[recipient];
+    certs[recipient][recent] = Cert(
+      sender, token, amount, content
     );
+    recipients[recipient] =  recent + 1; // TODO: should I use counter?
   }
 
-  function issueEther(address payable []  memory _recipients, 
+  function sendEther(address payable []  memory _recipients, 
     uint256[] memory values, string[] memory content) external payable {
     for (uint256 i = 0; i < _recipients.length; i++){
       _recipients[i].transfer(values[i]);
@@ -37,7 +37,7 @@ contract Gratitude {
       payable(msg.sender).transfer(balance);
   }
 
-  function issueToken(IERC20 token, address[] memory _recipients, uint256[] memory values, string[] memory content) external {
+  function sendToken(IERC20 token, address[] memory _recipients, uint256[] memory values, string[] memory content) external {
     uint256 total = 0;
     uint256 i = 0;
     for (i = 0; i < _recipients.length; i++)
